@@ -1,0 +1,409 @@
+Html
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>یـــــاری ئاڵا</title>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+   <style>
+* {
+        padding: 0;
+        margin: 0;
+        -webkit-box-sizing: border-box;
+                box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+      body {
+        background-color: #5372ef;
+      }
+      .wrapper {
+        width: 95%;
+        max-width: 37.5em;
+        position: absolute;
+        -webkit-transform: translate(-50%, -50%);
+            -ms-transform: translate(-50%, -50%);
+                transform: translate(-50%, -50%);
+        left: 50%;
+        top: 50%;
+      }
+      .container {
+        width: 100%;
+        margin: 0 auto;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+        background-color: #ffffff;
+        position: relative;
+        border-radius: 0.8em;
+        padding: 3em 0.5em;
+      }
+      a {
+        display: block;
+        background-color: #ffffff;
+        font-size: 1.2em;
+        padding: 0.9em 0;
+        text-align: center;
+        text-decoration: none;
+        color: #010c39;
+        border-radius: 0.3em;
+        margin-top: 1em;
+        font-weight: 600;
+      }
+      h3 {
+        text-align: center;
+        width: 60%;
+        margin: 0 auto 2em auto;
+        font-size: 1.2em;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        line-height: 1.8em;
+        color: #010c39;
+      }
+      .draggable-objects,
+      .drop-points {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-pack: distribute;
+            justify-content: space-around;
+        margin: 3em 0;
+      }
+      .draggable-image {
+        width: 8em;
+        cursor: move;
+      }
+      img {
+      position: relative;
+        width: 8em;
+        -webkit-filter: drop-shadow(0 0.3em 0.9em rgba(0, 0, 0, 0.15));
+                filter: drop-shadow(0 0.3em 0.9em rgba(0, 0, 0, 0.15));
+      }
+      .countries {
+        width: 10em;
+        height: 8em;
+        display: -ms-grid;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        border: 0.25em dashed #010c39;
+        border-radius: 0.8em;
+      }
+      .dropped {
+        padding: 0;
+        background-color: #e5ffc8;
+      }
+      .controls-container {
+        position: absolute;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-align: center;
+            -ms-flex-align: center;
+                align-items: center;
+        -webkit-box-pack: center;
+            -ms-flex-pack: center;
+                justify-content: center;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+                flex-direction: column;
+
+        background-color: #5372ef;
+        width: 100%;
+        height: 100%;
+        top: 0;
+      }
+      .controls-container button {
+        font-size: 1.12em;
+        padding: 0.8em 1em;
+        border-radius: 0.2em;
+        border: none;
+        outline: none;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+      }
+      .controls-container p {
+        color: #ffffff;
+        font-size: 2em;
+        margin-bottom: 1em;
+      }
+      .hide {
+        display: none;
+      }
+      @media screen and (max-width: 600px) {
+        body {
+          font-size: 12px;
+        }
+        h3 {
+          width: 90%;
+        }
+        .draggable-image {
+          width: 6em;
+        }
+        img {
+          width: 6em;
+        }
+        .countries {
+          width: 7em;
+          height: 6em;
+        }
+      }
+
+
+</style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="container">
+        <h3>ئاڵاکە بخە شوێنی ناوەکەی خۆی👌</h3>
+        <div class="draggable-objects"></div>
+        <div class="drop-points"></div>
+      </div>
+      
+    </div>
+    <div class="controls-container">
+      <p id="result"></p>
+      <button id="start">Start Game</button>
+    </div>
+    <script>
+      //Initial References
+      let draggableObjects;
+      let dropPoints;
+      const startButton = document.getElementById("start");
+      const result = document.getElementById("result");
+      const controls = document.querySelector(".controls-container");
+      const dragContainer = document.querySelector(".draggable-objects");
+      const dropContainer = document.querySelector(".drop-points");
+
+      // Country Names
+      const data = [
+        "belgium",
+        "bhutan",
+        "brazil",
+        "china",
+        "cuba",
+        "ecuador",
+        "georgia",
+        "germany",
+        "hong-kong",
+        "india",
+        "iran",
+        "myanmar",
+        "norway",
+        "spain",
+        "sri-lanka",
+        "sweden",
+        "switzerland",
+        "united-states",
+        "uruguay",
+        "wales",
+      ];
+
+      let deviceType = "";
+      let initialX = 0,
+        initialY = 0;
+      let currentElement = "";
+      let moveElement = false;
+
+      //Detect touch device
+      const is_touch_device = () => {
+        try {
+          //We try to create TouchEvent (it would fail for desktops and throw error)
+          document.createEvent("TouchEvent");
+          deviceType = "touch";
+          return true;
+        } catch (e) {
+          deviceType = "mouse";
+          return false;
+        }
+      };
+      let count = 0;
+
+      //random value from Array
+      const randomValueGenerator = () =>
+        data[Math.floor(Math.random() * data.length)];
+
+      //display win
+      const stopGame = () => {
+        controls.classList.remove("hide");
+        startButton.classList.remove("hide");
+      };
+
+      // Drag and Drop Functions
+      function dragStart(e) {
+        if (is_touch_device()) {
+          initialX = e.touches[0].clientX;
+          initialY = e.touches[0].clientY;
+          // start movement for touch
+          moveElement = true;
+          currentElement = e.target;
+        } else {
+          //for non touch devices set data to be transfered
+          e.dataTransfer.setData("text", e.target.id);
+        }
+      }
+
+      //Events fired on the drop target
+
+      function dragOver(e) {
+        e.preventDefault();
+      }
+
+      // for touchscreen movement
+      const touchMove = (e) => {
+        if (moveElement) {
+          e.preventDefault();
+          let newX = e.touches[0].clientX;
+          let newY = e.touches[0].clientY;
+          let currentSelectedElement = document.getElementById(e.target.id);
+          currentSelectedElement.parentElement.style.top =
+            currentSelectedElement.parentElement.offsetTop -
+            (initialY - newY) +
+            "px";
+          currentSelectedElement.parentElement.style.left =
+            currentSelectedElement.parentElement.offsetLeft -
+            (initialX - newX) +
+            "px";
+          initialX = newX;
+          initialY = newY;
+        }
+      };
+
+      const drop = (e) => {
+        e.preventDefault();
+        //for touch screen
+        if (is_touch_device()) {
+          moveElement = false;
+          //select country name div using the custom attribute
+          const currentDrop = document.querySelector(
+            `div[data-id='${e.target.id}']`
+          );
+          //get boundaries of div
+          const currentDropBound = currentDrop.getBoundingClientRect();
+          //if the position of flag falls inside the bounds of the country name
+          if (
+            initialX >= currentDropBound.left &&
+            initialX <= currentDropBound.right &&
+            initialY >= currentDropBound.top &&
+            initialY <= currentDropBound.bottom
+          ) {
+            currentDrop.classList.add("dropped");
+            //hide actual image
+            currentElement.classList.add("hide");
+            currentDrop.innerHTML = ``;
+            //insert new img element
+            currentDrop.insertAdjacentHTML(
+              "afterbegin",
+              `<img src="https://raw.githubusercontent.com/mitali19/Flags-Game/main/${currentElement.id}.png" alt="">`
+            );
+            count += 1;
+          }
+        } else {
+          //access data
+          const draggedElementData = e.dataTransfer.getData("text");
+          //get custom attribute value
+          const droppableElementData = e.target.getAttribute("data-id");
+          if (draggedElementData === droppableElementData) {
+            const draggedElement = document.getElementById(draggedElementData);
+            //dropped class
+            e.target.classList.add("dropped");
+            //hide current img
+            draggedElement.classList.add("hide");
+            //draggable set to false
+            draggedElement.setAttribute("draggable", "false");
+            e.target.innerHTML = ``;
+            //insert new img
+            e.target.insertAdjacentHTML(
+              "afterbegin",
+              `<img src="https://raw.githubusercontent.com/mitali19/Flags-Game/main/${draggedElementData}.png" alt="">`
+            );
+            count += 1;
+          }
+        }
+        // Win
+        if (count == 3) {
+          result.innerText = `You Won!`;
+          stopGame();
+        }
+      };
+
+      //creates flags and countries
+      const creator = () => {
+        dragContainer.innerHTML = "";
+        dropContainer.innerHTML = "";
+        let randomData = [];
+        //for storing random values in array
+        for (let i = 1; i <= 3; i++) {
+          let randomValue = randomValueGenerator();
+          if (!randomData.includes(randomValue)) {
+            randomData.push(randomValue);
+          } else {
+            //if value already exists then decrement i by 1
+            i -= 1;
+          }
+        }
+        for (let i of randomData) {
+          const flagDiv = document.createElement("div");
+          flagDiv.classList.add("draggable-image");
+          flagDiv.setAttribute("draggable", true);
+          if (is_touch_device()) {
+            flagDiv.style.position = "absolute";
+          }
+          flagDiv.innerHTML = `
+      <img src="https://raw.githubusercontent.com/mitali19/Flags-Game/main/${i}.png" alt=""  id="${i}">
+    `;
+          dragContainer.appendChild(flagDiv);
+        }
+        //sort the array randomly before creating country divs
+        randomData = randomData.sort(() => 0.5 - Math.random());
+        for (let i of randomData) {
+          const countryDiv = document.createElement("div");
+          countryDiv.innerHTML = `
+    <div class='countries' data-id='${i}'>
+      ${i.charAt(0).toUpperCase() + i.slice(1).replace("-", " ")}
+    </div>
+  `;
+          dropContainer.appendChild(countryDiv);
+        }
+      };
+
+      //start game
+      startButton.addEventListener(
+        "click",
+        (startGame = async () => {
+          currentElement = "";
+          controls.classList.add("hide");
+          startButton.classList.add("hide");
+          //this will wait for creator to create the images and then move forward
+          await creator();
+          count = 0;
+          dropPoints = document.querySelectorAll(".countries");
+          draggableObjects = document.querySelectorAll(".draggable-image");
+          // events
+          draggableObjects.forEach((element) => {
+            element.addEventListener("dragstart", dragStart);
+            //for touch screen
+            element.addEventListener("touchstart", dragStart);
+            element.addEventListener("touchend", drop);
+            element.addEventListener("touchmove", touchMove);
+          });
+          dropPoints.forEach((element) => {
+            // element.addEventListener('dragenter', dragEnter);
+            element.addEventListener("dragover", dragOver);
+            // element.addEventListener('dragleave', dragLeave);
+            element.addEventListener("drop", drop);
+          });
+        })
+      );
+    </script>
+  </body>
+</html>
